@@ -1,14 +1,14 @@
 package com.example.michal.myapplication;
 
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -20,55 +20,41 @@ public class JSONParser{
 
     public JSONParser(){}
 
-    public JSONObject getJSONFromUrl(String url){
-        JSONObject responseObject = null;
+    public String getJSONFromUrl(String url){
+        String stringResponse = null;
         try{
             InputStream response = getStreamFromUrl(url);
-            String stringResponse = getStringFromResponse(response);
-            responseObject = new JSONObject(stringResponse);
+            stringResponse = getStringFromResponse(response);
+            //responseObject = new JSONObject(stringResponse);
         }catch(IOException e){
             System.out.println("Wyjebalo w czasie HTTP requesta...");
             e.printStackTrace();
-        }catch(JSONException e){
-            System.out.println("Wyjebalo w czasie parsowania JSON'a...");
-            e.printStackTrace();
         }
-        return responseObject;
+        return stringResponse;
     }
 
     private InputStream getStreamFromUrl(String urlString){
         InputStream responseContent = null;
         HttpURLConnection urlConnection = null;
+        CookieHandler.setDefault( new CookieManager( null, CookiePolicy.ACCEPT_ALL ) );
         try {
             URL url = new URL(urlString);
             urlConnection = (HttpURLConnection)url.openConnection();
+            int responseCode = urlConnection.getResponseCode();
+            Object object = urlConnection.getContent();
+            //OutputStream os = urlConnection.getOutputStream();
+            InputStream test = urlConnection.getInputStream();
             responseContent = new BufferedInputStream(urlConnection.getInputStream());
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }catch(IOException e){
             e.printStackTrace();
         }finally {
-            urlConnection.disconnect();
+           // urlConnection.disconnect();
         }
         return responseContent;
     }
 
-    /*private InputStream getStreamFromUrl(String url) throws IOException {
-        InputStream responseContent = null;
-        HttpEntity entity = createApiCall(url);
-        responseContent = entity.getContent();
-        return responseContent;
-
-    }
-
-    private HttpEntity createApiCall(String url) throws IOException {
-        DefaultHttpClient defaultHttpClient = new DefaultHttpClient();
-        HttpGet httpGet = new HttpGet(url);
-        HttpResponse response = defaultHttpClient.execute(httpGet);
-        HttpEntity httpEntity = response.getEntity();
-        return httpEntity;
-
-    }*/
 
 
     private String getStringFromResponse(InputStream stream) throws IOException {
